@@ -22,6 +22,32 @@
         color: #fff;
         min-height: 100vh;
       }
+      .top-nav {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        padding: 12px;
+        background: rgba(15, 15, 26, 0.92);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(6px);
+      }
+      .top-nav a {
+        color: #c7d2fe;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 7px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(199, 210, 254, 0.35);
+      }
+      .top-nav a.active {
+        color: #fff;
+        background: #4f46e5;
+        border-color: #4f46e5;
+      }
 
       /* ── Hero ── */
       .hero {
@@ -225,6 +251,11 @@
     </style>
   </head>
   <body>
+    <nav class="top-nav">
+      <a href="./index.html" class="active">LP</a>
+      <a href="./map.html">空席マップ</a>
+      <a href="./admin.html">管理画面</a>
+    </nav>
 
     <section class="hero">
       <span class="hero-eyebrow">🍻 国分町 2次会スポット</span>
