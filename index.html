@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>【1杯無料】国分町の2次会はここで決まり</title>
+    <style>
+      :root {
+        --brand: #4f46e5;
+        --brand-dark: #3730a3;
+        --gold: #f59e0b;
+        --text: #101828;
+        --muted: #667085;
+        --bg: #0f0f1a;
+        --card: #1a1a2e;
+        --border: rgba(255,255,255,0.08);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic UI", sans-serif;
+        background: var(--bg);
+        color: #fff;
+        min-height: 100vh;
+      }
+
+      /* ── Hero ── */
+      .hero {
+        position: relative;
+        padding: 32px 24px 24px;
+        text-align: center;
+        background: radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.4) 0%, transparent 70%);
+        overflow: hidden;
+      }
+      .hero-eyebrow {
+        display: inline-block;
+        background: var(--gold);
+        color: #000;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 999px;
+        margin-bottom: 16px;
+        letter-spacing: 0.05em;
+      }
+      .hero h1 {
+        font-size: clamp(26px, 6vw, 40px);
+        line-height: 1.3;
+        margin-bottom: 12px;
+      }
+      .hero h1 span {
+        color: var(--gold);
+      }
+      .hero-sub {
+        font-size: 14px;
+        color: rgba(255,255,255,0.6);
+        line-height: 1.7;
+        margin-bottom: 32px;
+      }
+
+      /* ── クーポンバナー ── */
+      .coupon {
+        margin: 0 auto 20px;
+        max-width: 360px;
+        background: linear-gradient(135deg, #1e1b4b, #312e81);
+        border: 2px dashed var(--gold);
+        border-radius: 20px;
+        padding: 24px;
+        text-align: center;
+        position: relative;
+      }
+      .coupon::before,
+      .coupon::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        background: var(--bg);
+        border-radius: 50%;
+      }
+      .coupon::before { left: -11px; }
+      .coupon::after  { right: -11px; }
+      .coupon-label {
+        font-size: 12px;
+        color: var(--gold);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        margin-bottom: 8px;
+      }
+      .coupon-main {
+        font-size: clamp(32px, 8vw, 48px);
+        font-weight: 900;
+        line-height: 1;
+        margin-bottom: 6px;
+      }
+      .coupon-main span { color: var(--gold); }
+      .coupon-note {
+        font-size: 12px;
+        color: rgba(255,255,255,0.5);
+      }
+
+      /* ── LINE登録ボタン ── */
+      .line-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #06c755;
+        color: #fff;
+        font-size: 17px;
+        font-weight: 700;
+        border: none;
+        border-radius: 14px;
+        padding: 18px 24px;
+        width: 100%;
+        max-width: 360px;
+        margin: 0 auto 8px;
+        cursor: pointer;
+        text-decoration: none;
+        box-shadow: 0 8px 24px rgba(6,199,85,0.35);
+        transition: transform 0.15s, box-shadow 0.15s;
+      }
+      .line-btn:active {
+        transform: scale(0.97);
+        box-shadow: 0 4px 12px rgba(6,199,85,0.25);
+      }
+      .line-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #06c755;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  padding: 20px 24px;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto 12px;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(6,199,85,0.35);
+}
+      .line-note {
+        font-size: 13px;
+        color: rgba(255,255,255,0.4);
+        text-align: center;
+        margin-bottom: 24px; 
+      }
+
+      /* ── PR セクション ── */
+      .section {
+        padding:  0 24px 24px;
+        max-width: 480px;
+        margin: 0 auto;
+      }
+      .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+      }
+      .points {
+        display: grid;
+        gap: 12px;
+      }
+      .point-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+      }
+      .point-icon {
+        font-size: 28px;
+        flex-shrink: 0;
+        line-height: 1;
+      }
+      .point-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .point-desc {
+        font-size: 14px;
+        color: rgba(255,255,255,0.55);
+        line-height: 1.6;
+      }
+
+      /* ── 空席マップへのリンク ── */
+      .map-link-wrap {
+        padding: 0 24px 32px;
+        max-width: 480px;
+        margin: 0 auto;
+      }
+      .map-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px 20px;
+        text-decoration: none;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .map-link-sub {
+        font-size: 13px;
+        color: rgba(255,255,255,0.45);
+        font-weight: 400;
+        margin-top: 2px;
+      }
+      .map-link-arrow {
+        font-size: 20px;
+        color: var(--brand);
+      }
+    </style>
+  </head>
+  <body>
+
+    <section class="hero">
+      <span class="hero-eyebrow">🍻 国分町 2次会スポット</span>
+      <h1>今夜の2次会、<br><span>まだ間に合う。</span></h1>
+      <p class="hero-sub">
+        ○○○○○○（店舗名）は<br>
+        ○○○○○○○○○○（キャッチコピーをここに）
+      </p>
+
+      <!-- クーポン -->
+      <div class="coupon">
+        <p class="coupon-label">🎁 LINE登録特典</p>
+        <p class="coupon-main"><span>1杯</span> 無料</p>
+        <p class="coupon-note">LINEお友だち追加で今すぐ使えます</p>
+      </div>
+
+      <a href="https://lin.ee/XXXXXXX" target="_blank" rel="noopener" class="line-btn">
+        <span style="font-size:20px;">💬</span>
+        LINE友だち追加で1杯無料GET
+      </a>
+      <p class="line-note">登録は無料・通知はいつでも解除できます</p>
+    </section>
+
+    <!-- PR -->
+    <section class="section">
+      <p class="section-title">✨ ここが楽しい</p>
+      <div class="points">
+        <div class="point-card">
+          <span class="point-icon">🍶</span>
+          <div>
+            <p class="point-title">ポイント①のタイトル</p>
+            <p class="point-desc">説明文をここに入れてください。お店の魅力を2〜3文で。</p>
+          </div>
+        </div>
+        <div class="point-card">
+          <span class="point-icon">🎵</span>
+          <div>
+            <p class="point-title">ポイント②のタイトル</p>
+            <p class="point-desc">説明文をここに入れてください。雰囲気・席数・料金など。</p>
+          </div>
+        </div>
+        <div class="point-card">
+          <span class="point-icon">📍</span>
+          <div>
+            <p class="point-title">ポイント③のタイトル</p>
+            <p class="point-desc">説明文をここに入れてください。アクセス・営業時間など。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 空席マップへ -->
+    <div class="map-link-wrap">
+      <a href="map.html" class="map-link">
+        <div>
+          <div>国分町の空席マップを見る</div>
+          <div class="map-link-sub">近くの空いてる店をリアルタイムで確認</div>
+        </div>
+        <span class="map-link-arrow">→</span>
+      </a>
+    </div>
+
+  </body>
+</html>
