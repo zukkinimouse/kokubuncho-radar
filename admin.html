@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>空席更新画面</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #101828;
+      --muted: #667085;
+      --border: #e4e7ec;
+      --ok: #16a34a;
+      --warn: #f59e0b;
+      --full: #ef4444;
+      --shadow: 0 10px 30px rgba(16, 24, 40, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", "Hiragino Kaku Gothic ProN", "Yu Gothic UI",
+        "Yu Gothic", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #f9fafc 0%, var(--bg) 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      width: min(960px, 92vw);
+      margin: 32px auto 48px;
+    }
+
+    .hero {
+      background: radial-gradient(110% 120% at 100% 0%,
+          rgba(99, 102, 241, 0.16) 0%,
+          rgba(99, 102, 241, 0) 60%),
+        var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid #d0d5dd;
+      background: #f9fafb;
+      color: #344054;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      margin: 14px 0 8px;
+      font-size: clamp(24px, 3.5vw, 34px);
+      line-height: 1.2;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .grid {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 780px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .status-card {
+      padding: 22px;
+    }
+
+    .label {
+      margin: 0 0 8px;
+      color: #475467;
+      font-size: 13px;
+    }
+
+    .seats {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .seats strong {
+      font-size: clamp(56px, 10vw, 78px);
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .seats span {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .status-pill {
+      margin-top: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .status-ok {
+      background: #ecfdf3;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+
+    .status-warn {
+      background: #fffbeb;
+      color: #92400e;
+      border-color: #fde68a;
+    }
+
+    .status-full {
+      background: #fef2f2;
+      color: #991b1b;
+      border-color: #fecaca;
+    }
+
+    .meta {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .form-card {
+      padding: 22px;
+    }
+
+    .form-title {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .form-group {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      font-size: 13px;
+      color: #344054;
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid #d0d5dd;
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    input:focus,
+    select:focus {
+      outline: 2px solid #c7d2fe;
+      border-color: #818cf8;
+    }
+
+    .actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: #4f46e5;
+      color: #fff;
+    }
+
+    .ghost {
+      background: #eef2ff;
+      color: #3730a3;
+    }
+
+    /* タイマー表示 */
+    .timer-bar {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #92400e;
+      display: none;
+      /* JS で表示切替 */
+    }
+
+    .timer-bar.active {
+      display: block;
+    }
+
+    .msg {
+      margin-top: 12px;
+      min-height: 1.4em;
+      font-size: 13px;
+    }
+
+    .msg.error {
+      color: #b42318;
+    }
+
+    .msg.success {
+      color: #027a48;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <section class="hero">
+      <span class="badge">Realtime Seat Status</span>
+      <h1>飲食店 空席更新</h1>
+      <p class="sub">Firestore と連携して空席状況をリアルタイム表示します。</p>
+    </section>
+
+    <section class="grid">
+      <article class="card status-card">
+        <p class="label">現在の空席数</p>
+        <div class="seats">
+          <strong id="seatsCount">--</strong>
+          <span>席</span>
+        </div>
+        <div id="statusPill" class="status-pill status-ok">読み込み中...</div>
+        <p id="updatedAt" class="meta">最終更新: --</p>
+      </article>
+
+      <article class="card form-card">
+        <h2 class="form-title">スタッフ更新</h2>
+
+        <div class="form-group">
+          <label for="seatInput">空席数</label>
+          <input id="seatInput" type="number" min="0" placeholder="例: 12" />
+        </div>
+
+        <div class="form-group">
+          <label for="statusInput">営業ステータス</label>
+          <select id="statusInput">
+            <option value="available">空席あり</option>
+            <option value="few">残りわずか</option>
+            <option value="full">満席</option>
+          </select>
+        </div>
+
+        <div class="actions">
+          <button id="saveBtn" class="primary">更新する</button>
+          <button id="presetFullBtn" class="ghost" type="button">満席にする</button>
+        </div>
+
+        <div id="timerBar" class="timer-bar">
+          ⏱ 自動リセットまで <span id="timerCount">--</span>
+        </div>
+        <div class="card form-card" style="margin-top: 18px;">
+          <h2 class="form-title">📣 ゲリラ通知</h2>
+          <p style="font-size:13px; color:#667085; margin: 0 0 12px;">
+            LINE登録済みのユーザー全員に空席情報をプッシュ通知します
+          </p>
+          <div class="form-group">
+            <label for="notifyMsg">メッセージ</label>
+            <input id="notifyMsg" type="text" placeholder="例：2次会まだ間に合います！今なら5席空いてます🍻" />
+          </div>
+          <div class="actions">
+            <button id="notifyBtn" class="primary">LINE通知を送る</button>
+          </div>
+          <p id="notifyMessage" class="msg"></p>
+        </div>
+        <p id="message" class="msg"></p>
+      </article>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      onSnapshot,
+      setDoc,
+      serverTimestamp,
+    } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+    // Firebase 設定値はここに貼り付けてください（Firebase コンソールの SDK 設定）
+    // 例: apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId
+    const firebaseConfig = {
+      apiKey: "AIzaSyApRNwgcnKe0-qhZBh0zrtgyel_WJMaXms",
+      authDomain: "kokubuncho-radar.firebaseapp.com",
+      projectId: "kokubuncho-radar",
+      storageBucket: "kokubuncho-radar.firebasestorage.app",
+      messagingSenderId: "376361706767",
+      appId: "1:376361706767:web:ebadd7b3463d614f694a7a"
+    };
+
+    // 利用するドキュメントの場所（必要なら変更）
+    const COLLECTION_NAME = "shops";
+    const DOCUMENT_ID = "main-store";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const seatDocRef = doc(db, COLLECTION_NAME, DOCUMENT_ID);
+
+    const seatsCountEl = document.getElementById("seatsCount");
+    const statusPillEl = document.getElementById("statusPill");
+    const updatedAtEl = document.getElementById("updatedAt");
+    const seatInputEl = document.getElementById("seatInput");
+    const statusInputEl = document.getElementById("statusInput");
+    const saveBtnEl = document.getElementById("saveBtn");
+    const presetFullBtnEl = document.getElementById("presetFullBtn");
+    const messageEl = document.getElementById("message");
+
+    const statusMap = {
+      available: {
+        text: "空席あり",
+        className: "status-ok",
+      },
+      few: {
+        text: "残りわずか",
+        className: "status-warn",
+      },
+      full: {
+        text: "満席",
+        className: "status-full",
+      },
+    };
+
+    function formatDate(timestamp) {
+      if (!timestamp?.toDate) return "--";
+      return timestamp.toDate().toLocaleString("ja-JP");
+    }
+
+    function setMessage(text, type = "") {
+      messageEl.textContent = text;
+      messageEl.className = `msg ${type}`.trim();
+    }
+
+    function renderStatus(status) {
+      const info = statusMap[status] ?? statusMap.available;
+      statusPillEl.textContent = info.text;
+      statusPillEl.className = `status-pill ${info.className}`;
+    }
+
+    // Firestore のドキュメントを監視し、他端末更新も即時反映
+    onSnapshot(
+      seatDocRef,
+      (snapshot) => {
+        if (!snapshot.exists()) {
+          seatsCountEl.textContent = "0";
+          renderStatus("available");
+          updatedAtEl.textContent = "最終更新: 初期データ未作成";
+          return;
+        }
+
+        const data = snapshot.data();
+        const seats = Number.isFinite(data.availableSeats) ? data.availableSeats : 0;
+        const status = data.status || "available";
+        const updatedAt = data.updatedAt;
+
+        seatsCountEl.textContent = String(seats);
+        renderStatus(status);
+        updatedAtEl.textContent = `最終更新: ${formatDate(updatedAt)}`;
+
+        seatInputEl.value = String(seats);
+        statusInputEl.value = status;
+        const resetAt = data.resetAt?.toMillis?.() ?? null;
+        if (resetAt && data.status !== "full") {
+          startCountdownDisplay(resetAt);
+          triggerAutoReset(resetAt);
+        } else {
+          timerBarEl.classList.remove("active");
+          if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+          }
+        }
+      },
+      (error) => {
+        setMessage(`リアルタイム受信エラー: ${error.message}`, "error");
+      }
+    );
+
+    // 管理画面から空席情報を書き込み
+    saveBtnEl.addEventListener("click", async () => {
+      const seats = Number(seatInputEl.value);
+      const status = statusInputEl.value;
+
+      if (!Number.isInteger(seats) || seats < 0) {
+        setMessage("空席数は 0 以上の整数で入力してください。", "error");
+        return;
+      }
+
+      const resetAt = status !== "full"
+        ? new Date(Date.now() + RESET_MINUTES * 60 * 1000)
+        : null;
+
+      try {
+        await setDoc(
+          seatDocRef,
+          {
+            availableSeats: seats,
+            status,
+            updatedAt: serverTimestamp(),
+            resetAt: resetAt,
+          },
+          { merge: true }
+        );
+        setMessage(
+          status !== "full"
+            ? `空席情報を更新しました（${RESET_MINUTES}分後に自動満席）。`
+            : "空席情報を更新しました。",
+          "success"
+        );
+      } catch (error) {
+        setMessage(`保存エラー: ${error.message}`, "error");
+      }
+    });
+
+    // ワンクリックで満席へ設定
+    presetFullBtnEl.addEventListener("click", async () => {
+      try {
+        await setDoc(
+          seatDocRef,
+          {
+            availableSeats: 0,
+            status: "full",
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true }
+        );
+        setMessage("満席状態へ更新しました。", "success");
+      } catch (error) {
+        setMessage(`保存エラー: ${error.message}`, "error");
+      }
+    });
+    // ── 30分タイマー自動リセット ──────────────────────────────
+    const RESET_MINUTES = 30;
+    let countdownInterval = null;
+
+    const timerBarEl = document.getElementById("timerBar");
+    const timerCountEl = document.getElementById("timerCount");
+
+    function startCountdownDisplay(resetAt) {
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      function tick() {
+        const remaining = resetAt - Date.now();
+        if (remaining <= 0) {
+          timerBarEl.classList.remove("active");
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+          return;
+        }
+        const m = Math.floor(remaining / 60000);
+        const s = Math.floor((remaining % 60000) / 1000);
+        timerCountEl.textContent = `${m}分${String(s).padStart(2, "0")}秒`;
+        timerBarEl.classList.add("active");
+      }
+
+      tick();
+      countdownInterval = setInterval(tick, 1000);
+    }
+
+    async function triggerAutoReset(resetAt) {
+      if (Date.now() < resetAt) return;
+      try {
+        await setDoc(
+          seatDocRef,
+          { availableSeats: 0, status: "full", updatedAt: serverTimestamp(), resetAt: null },
+          { merge: true }
+        );
+      } catch (e) {
+        console.error("自動リセット失敗:", e);
+      }
+    }
+    // ── ゲリラ通知ボタン（モック） ──────────────────────────
+    const notifyBtnEl = document.getElementById("notifyBtn");
+    const notifyMsgEl = document.getElementById("notifyMessage");
+    const notifyInputEl = document.getElementById("notifyMsg");
+
+    notifyBtnEl.addEventListener("click", async () => {
+      const text = notifyInputEl.value.trim();
+      if (!text) {
+        notifyMsgEl.textContent = "メッセージを入力してください。";
+        notifyMsgEl.className = "msg error";
+        return;
+      }
+
+      // TODO: ここをCloud Functions呼び出しに差し替える
+      // const res = await fetch("https://YOUR_FUNCTION_URL/sendNotify", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ message: text })
+      // });
+
+      // モック：送信成功を演出
+      notifyBtnEl.disabled = true;
+      notifyBtnEl.textContent = "送信中...";
+      await new Promise(r => setTimeout(r, 1200));
+      notifyBtnEl.disabled = false;
+      notifyBtnEl.textContent = "LINE通知を送る";
+      notifyMsgEl.textContent = "✅ 通知を送信しました（モック）";
+      notifyMsgEl.className = "msg success";
+      notifyInputEl.value = "";
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>国分町 空席マップ</title>
+    <style>
+      :root {
+        --bg: #f6f7fb;
+        --card: #ffffff;
+        --text: #101828;
+        --muted: #667085;
+        --border: #e4e7ec;
+        --ok: #16a34a;
+        --warn: #f59e0b;
+        --full: #ef4444;
+        --shadow: 0 10px 30px rgba(16, 24, 40, 0.08);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Inter", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        min-height: 100vh;
+      }
+      header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 16px 20px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      header h1 {
+        margin: 0 0 12px;
+        font-size: 18px;
+      }
+      .filters {
+        display: flex;
+        gap: 8px;
+      }
+      .filter-btn {
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--muted);
+      }
+      .filter-btn.active {
+        background: #4f46e5;
+        color: #fff;
+        border-color: #4f46e5;
+      }
+      .container {
+        width: min(640px, 92vw);
+        margin: 24px auto 48px;
+        display: grid;
+        gap: 14px;
+      }
+      .geo-msg {
+        font-size: 13px;
+        color: var(--muted);
+        text-align: center;
+        padding: 8px 0;
+      }
+      .shop-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .shop-card.hidden { display: none; }
+      .seat-badge {
+        flex-shrink: 0;
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+      }
+      .badge-ok   { background: #ecfdf3; color: #166534; }
+      .badge-warn { background: #fffbeb; color: #92400e; }
+      .badge-full { background: #fef2f2; color: #991b1b; }
+      .seat-badge .num  { font-size: 26px; line-height: 1; }
+      .seat-badge .unit { font-size: 11px; }
+      .shop-info { flex: 1; min-width: 0; }
+      .shop-name { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+      .shop-meta { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .pill-ok   { background: #ecfdf3; color: #166534; border-color: #bbf7d0; }
+      .pill-warn { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+      .pill-full { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+      .timer-small {
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .empty-msg {
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+        padding: 40px 0;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🍻 国分町 空席マップ</h1>
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">すべて</button>
+        <button class="filter-btn" data-filter="available">空席あり</button>
+        <button class="filter-btn" data-filter="few">残りわずか</button>
+      </div>
+    </header>
+
+    <div class="container">
+      <p id="geoMsg" class="geo-msg">現在地を取得中...</p>
+      <div id="shopList"></div>
+      <p id="emptyMsg" class="empty-msg">条件に合う店舗がありません</p>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        onSnapshot,
+      } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyApRNwgcnKe0-qhZBh0zrtgyel_WJMaXms",
+        authDomain: "kokubuncho-radar.firebaseapp.com",
+        projectId: "kokubuncho-radar",
+        storageBucket: "kokubuncho-radar.firebasestorage.app",
+        messagingSenderId: "376361706767",
+        appId: "1:376361706767:web:ebadd7b3463d614f694a7a"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      let userLat = null;
+      let userLng = null;
+      let currentFilter = "all";
+      let shopsData = [];
+
+      // 現在地取得
+      const geoMsgEl = document.getElementById("geoMsg");
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            userLat = pos.coords.latitude;
+            userLng = pos.coords.longitude;
+            geoMsgEl.textContent = "現在地から近い順に表示しています";
+            renderShops();
+          },
+          () => {
+            geoMsgEl.textContent = "現在地を取得できませんでした（登録順に表示）";
+          }
+        );
+      } else {
+        geoMsgEl.textContent = "このブラウザは位置情報に対応していません";
+      }
+
+      // 距離計算（km）
+      function calcDistance(lat1, lng1, lat2, lng2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 +
+          Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLng/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      }
+
+      function formatResetAt(resetAt) {
+        if (!resetAt?.toMillis) return null;
+        const remaining = resetAt.toMillis() - Date.now();
+        if (remaining <= 0) return null;
+        const m = Math.floor(remaining / 60000);
+        const s = Math.floor((remaining % 60000) / 1000);
+        return `⏱ 自動満席まで ${m}分${String(s).padStart(2,"0")}秒`;
+      }
+
+      function renderShops() {
+        const listEl = document.getElementById("shopList");
+        const emptyEl = document.getElementById("emptyMsg");
+        listEl.innerHTML = "";
+
+        let shops = [...shopsData];
+
+        // 距離順ソート
+        if (userLat !== null) {
+          shops.sort((a, b) => {
+            const da = (a.lat && a.lng) ? calcDistance(userLat, userLng, a.lat, a.lng) : 9999;
+            const db_ = (b.lat && b.lng) ? calcDistance(userLat, userLng, b.lat, b.lng) : 9999;
+            return da - db_;
+          });
+        }
+
+        // フィルター
+        const filtered = shops.filter(s => {
+          if (currentFilter === "all") return true;
+          return s.status === currentFilter;
+        });
+
+        if (filtered.length === 0) {
+          emptyEl.style.display = "block";
+          return;
+        }
+        emptyEl.style.display = "none";
+
+        filtered.forEach(shop => {
+          const statusMap = {
+            available: { text: "空席あり", pillClass: "pill-ok",   badgeClass: "badge-ok" },
+            few:       { text: "残りわずか", pillClass: "pill-warn", badgeClass: "badge-warn" },
+            full:      { text: "満席",     pillClass: "pill-full", badgeClass: "badge-full" },
+          };
+          const info = statusMap[shop.status] ?? statusMap.available;
+          const dist = (userLat && shop.lat && shop.lng)
+            ? `現在地から約 ${(calcDistance(userLat, userLng, shop.lat, shop.lng) * 1000).toFixed(0)}m`
+            : "";
+          const timerText = (shop.status !== "full") ? formatResetAt(shop.resetAt) : null;
+
+          const card = document.createElement("div");
+          card.className = "shop-card";
+          card.innerHTML = `
+            <div class="seat-badge ${info.badgeClass}">
+              <span class="num">${shop.status === "full" ? "×" : shop.availableSeats ?? "?"}</span>
+              <span class="unit">${shop.status === "full" ? "満席" : "席"}</span>
+            </div>
+            <div class="shop-info">
+              <p class="shop-name">${shop.name ?? shop.id}</p>
+              <p class="shop-meta">${dist}</p>
+              <span class="status-pill ${info.pillClass}">${info.text}</span>
+              ${timerText ? `<p class="timer-small">${timerText}</p>` : ""}
+            </div>
+          `;
+          listEl.appendChild(card);
+        });
+      }
+
+      // Firestore 監視（shopsコレクション全件）
+      onSnapshot(collection(db, "shops"), (snapshot) => {
+        shopsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderShops();
+      });
+
+      // フィルターボタン
+      document.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentFilter = btn.dataset.filter;
+          renderShops();
+        });
+      });
+    </script>
+  </body>
+</html>
